@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 RC Car - Media Gallery & Album</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(56, 189, 248, 0.2);
+            --accent-glow: #38bdf8;
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(56, 189, 248, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wrapper {
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #f472b6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+        }
+
+        .subtitle span {
+            color: var(--accent-glow);
+            font-weight: 600;
+        }
+
+        .switcher-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .switch-btn {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 14px 35px;
+            border-radius: 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .switch-btn:hover {
+            color: var(--text-main);
+            border-color: var(--accent-glow);
+        }
+
+        .switch-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent-glow));
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 25px rgba(56, 189, 248, 0.45);
+            transform: translateY(-2px);
+        }
+
+        .gallery-section {
+            display: none;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+        }
+
+        .gallery-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: var(--accent-glow);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 30px;
+        }
+
+        .media-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .media-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.1);
+        }
+
+        /* Cloud Video Player Styling */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background: #000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            outline: none;
+        }
+
+        .media-preview-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .media-content {
+            padding: 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .media-title {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .media-desc {
+            font-size: 0.98rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .media-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-glow));
+            color: #ffffff;
+            padding: 10px 22px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
+            align-self: flex-start;
+        }
+
+        .media-link:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .wrapper {
+                padding: 20px 15px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .switch-btn {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <h1>Media Gallery & Album</h1>
+            <div class="subtitle">ESP32 Smart 4WD RC Car | <span>Photos & Videos Hub</span></div>
+        </header>
+
+        <!-- Switcher Buttons -->
+        <div class="switcher-container">
+            <button id="btnPhotos" class="switch-btn active" onclick="switchTab('photos')">
+                <i class="fa-solid fa-images"></i> Photos
+            </button>
+            <button id="btnVideos" class="switch-btn" onclick="switchTab('videos')">
+                <i class="fa-solid fa-video"></i> Videos
+            </button>
+        </div>
+
+        <!-- Photos Section -->
+        <div id="photosSection" class="gallery-section active">
+            <h2 class="section-title"><i class="fa-solid fa-camera text-pink-400"></i> Photo Album & Snapshots</h2>
+            <div class="grid-container">
+                
+                <!-- Photo Item 1 -->
+                <div class="media-card">
+                    <img src="https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&w=600&q=80" alt="Chassis Photo" class="media-preview-img">
+                    <div class="media-content">
+                        <div>
+                            <h3 class="media-title">Chassis & RGB Underglow</h3>
+                            <p class="media-desc">High-resolution photo showing ground flow LED effects and wiring.</p>
+                        </div>
+                        <a href="https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&w=1200&q=80" target="_blank" class="media-link">
+                            <i class="fa-solid fa-eye"></i> View Full Photo
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Photo Item 2 -->
+                <div class="media-card">
+                    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80" alt="OLED Circuitry" class="media-preview-img">
+                    <div class="media-content">
+                        <div>
+                            <h3 class="media-title">OLED & Sensor Circuitry</h3>
+                            <p class="media-desc">Close-up view of the ultrasonic sensor and telemetry display.</p>
+                        </div>
+                        <a href="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80" target="_blank" class="media-link">
+                            <i class="fa-solid fa-eye"></i> View Full Photo
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Videos Section with Built-in Cloud Video Player -->
+        <div id="videosSection" class="gallery-section">
+            <h2 class="section-title"><i class="fa-solid fa-video text-sky-400"></i> Cloud Video Album</h2>
+            <div class="grid-container">
+                
+                <!-- Video Item 1 -->
+                <div class="media-card">
+                    <div class="video-container">
+                        <!-- controls attribute එක නිසා play, pause, volume, fullscreen බටන් ඔටෝ හැදෙනවා -->
+                        <video controls preload="metadata">
+                            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="media-content">
+                        <div>
+                            <h3 class="media-title">AI Vision & Test Drive</h3>
+                            <p class="media-desc">Watch how the 4WD RC car navigates using cloud-hosted video streaming.</p>
+                        </div>
+                        <span class="media-link" style="background: rgba(56, 189, 248, 0.1); color: var(--accent-glow); border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <i class="fa-solid fa-circle-check"></i> Ready to Play
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Video Item 2 -->
+                <div class="media-card">
+                    <div class="video-container">
+                        <video controls preload="metadata">
+                            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="media-content">
+                        <div>
+                            <h3 class="media-title">Hardware Assembly Guide</h3>
+                            <p class="media-desc">Step-by-step assembly video player with full playback control.</p>
+                        </div>
+                        <span class="media-link" style="background: rgba(56, 189, 248, 0.1); color: var(--accent-glow); border: 1px solid rgba(56, 189, 248, 0.3);">
+                            <i class="fa-solid fa-circle-check"></i> Ready to Play
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 ESP32 Smart RC Car Project. Built with passion and advanced engineering.
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            const btnPhotos = document.getElementById('btnPhotos');
+            const btnVideos = document.getElementById('btnVideos');
+            const photosSection = document.getElementById('photosSection');
+            const videosSection = document.getElementById('videosSection');
+
+            if (tab === 'photos') {
+                btnPhotos.classList.add('active');
+                btnVideos.classList.remove('active');
+                photosSection.classList.add('active');
+                videosSection.classList.remove('active');
+            } else {
+                btnVideos.classList.add('active');
+                btnPhotos.classList.remove('active');
+                videosSection.classList.add('active');
+                photosSection.classList.remove('active');
+            }
+        }
+    </script>
+
+</body>
+</html>

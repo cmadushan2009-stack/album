@@ -314,7 +314,7 @@
                 <!-- Video Item 1 -->
                 <div class="media-card">
                     <div class="video-container">
-                        <video controls preload="metadata">
+                        <video controls preload="metadata" class="rc-video">
                             <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
@@ -333,7 +333,7 @@
                 <!-- Video Item 2 -->
                 <div class="media-card">
                     <div class="video-container">
-                        <video controls preload="metadata">
+                        <video controls preload="metadata" class="rc-video">
                             <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
@@ -358,15 +358,26 @@
     </div>
 
     <script>
+        // එක වීඩියෝ එකක් play වෙද්දී වෙනත් ඕනෑම වීඩියෝ එකක් auto pause වීම සඳහා
+        const videos = document.querySelectorAll('.rc-video');
+        videos.forEach(video => {
+            video.addEventListener('play', () => {
+                videos.forEach(otherVideo => {
+                    if (otherVideo !== video) {
+                        otherVideo.pause();
+                    }
+                });
+            });
+        });
+
         function switchTab(tab) {
             const btnPhotos = document.getElementById('btnPhotos');
             const btnVideos = document.getElementById('btnVideos');
             const photosSection = document.getElementById('photosSection');
             const videosSection = document.getElementById('videosSection');
 
-            // ටැබ් එක මාරු කරන විට ක්‍රියාත්මක වන සියලුම වීඩියෝ ස්වයංක්‍රීයව නවත්වයි (Pause කරයි)
-            const allVideos = document.querySelectorAll('video');
-            allVideos.forEach(video => {
+            // ටැබ් එක මාරු කරන විට සියලුම වීඩියෝ නවත්වයි
+            videos.forEach(video => {
                 video.pause();
             });
 

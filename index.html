@@ -163,7 +163,6 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.1);
         }
 
-        /* Cloud Video Player Styling */
         .video-container {
             position: relative;
             width: 100%;
@@ -307,7 +306,7 @@
             </div>
         </div>
 
-        <!-- Videos Section with Built-in Cloud Video Player -->
+        <!-- Videos Section -->
         <div id="videosSection" class="gallery-section">
             <h2 class="section-title"><i class="fa-solid fa-video text-sky-400"></i> Cloud Video Album</h2>
             <div class="grid-container">
@@ -315,7 +314,6 @@
                 <!-- Video Item 1 -->
                 <div class="media-card">
                     <div class="video-container">
-                        <!-- controls attribute එක නිසා play, pause, volume, fullscreen බටන් ඔටෝ හැදෙනවා -->
                         <video controls preload="metadata">
                             <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                             Your browser does not support the video tag.
@@ -365,6 +363,12 @@
             const btnVideos = document.getElementById('btnVideos');
             const photosSection = document.getElementById('photosSection');
             const videosSection = document.getElementById('videosSection');
+
+            // ටැබ් එක මාරු කරන විට ක්‍රියාත්මක වන සියලුම වීඩියෝ ස්වයංක්‍රීයව නවත්වයි (Pause කරයි)
+            const allVideos = document.querySelectorAll('video');
+            allVideos.forEach(video => {
+                video.pause();
+            });
 
             if (tab === 'photos') {
                 btnPhotos.classList.add('active');
